@@ -1,8 +1,10 @@
+
 import type { Metadata } from "next";
-import {Roboto_Mono as Roboto} from "next/font/google";
+import { Roboto_Mono as Roboto } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import LayoutWrapper from "@/app/LayoutWrapper";
 
 const roboto = Roboto({
   display: "swap",
@@ -21,11 +23,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`antialiased`}
-      >
+      <body className={`antialiased`}>
         <Header />
-        {children}
+        <LayoutWrapper>
+          {children}
+        </LayoutWrapper>
         <Footer />
       </body>
     </html>
