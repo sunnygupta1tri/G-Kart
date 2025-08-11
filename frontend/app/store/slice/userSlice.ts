@@ -5,6 +5,7 @@ interface UserState {
 	name: string;
 	email: string;
 	isLoggedIn: boolean;
+	isEmailVerified: boolean;
 }
 
 const initialState: UserState = {
@@ -12,6 +13,7 @@ const initialState: UserState = {
 	name: '',
 	email: '',
 	isLoggedIn: false,
+	isEmailVerified: false,
 };
 
 const userSlice = createSlice({
