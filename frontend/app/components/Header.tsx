@@ -16,7 +16,8 @@ const Header = () => {
   const [isUserOpen, setIsUserOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [user, setUser] = useState<{ name: string } | null>(null);
+  const [user, setUser] = useState<{ name: string } | null>({ name: "Sunny Gupta" });
+
 
 
   const getInitials = (name: string) =>
@@ -66,7 +67,7 @@ const Header = () => {
               setIsCategoriesOpen(false);
               setIsUserOpen(false);
               setIsMobileMenuOpen(false);
-            }}
+            }} 
           >
             <span className="flex items-center gap-2">
               <Home className="w-5 h-5" />
@@ -280,22 +281,34 @@ const Header = () => {
                   {user ? (
                     <>
                       <Link href="/orders" className={dropdownItemClass}>
-                        My Orders
+                        <span className="flex items-center gap-2">
+                          <Gift className="w-5 h-5 text-black" />
+                          My Orders
+                        </span>
                       </Link>
                       <button
                         onClick={() => setUser(null)}
                         className={`${dropdownItemClass} w-full text-left`}
                       >
-                        Logout
+                        <span className="flex items-center gap-2">
+                          <LogOut className="w-5 h-5 text-black" />
+                          Logout
+                        </span>
                       </button>
                     </>
                   ) : (
                     <>
                       <Link href="/login" className={dropdownItemClass}>
-                        Login
+                        <span className="flex items-center gap-2">
+                          <LogIn className="w-5 h-5 text-black" />
+                          Login
+                        </span>
                       </Link>
                       <Link href="/signup" className={dropdownItemClass}>
-                        Signup
+                        <span className="flex items-center gap-2">
+                          <UserPlus className="w-5 h-5 text-black" />
+                          Signup
+                        </span>
                       </Link>
                     </>
                   )}
@@ -342,21 +355,35 @@ const Header = () => {
         </div>
         <nav className="flex flex-col p-2 gap-1">
           <Link href="/" className={dropdownItemClass}>
-            Home
+            <span className="flex items-center gap-2">
+              <Home className="w-5 h-5" />
+              Home
+            </span>
           </Link>
           <div>
-            <div className="font-semibold px-4 py-2">Categories</div>
-            {["Electronics", "Fashion", "Grocery"].map((cat) => (
-              <Link
-                key={cat}
-                href={`/categories/${cat.toLowerCase()}`}
-                className={dropdownItemClass}
-              >
-                {cat}
-              </Link>
-            ))}
+            <div className="font-semibold px-4 py-2 flex items-center gap-2">
+              <LayoutGrid className="w-5 h-5" />
+              Categories
+            </div>
+            <Link href="/categories/electronics" className={dropdownItemClass}>
+              <span className="flex items-center gap-2">
+                <Monitor className="w-5 h-5" />
+                Electronics
+              </span>
+            </Link>
+            <Link href="/categories/fashion" className={dropdownItemClass}>
+              <span className="flex items-center gap-2">
+                <Shirt className="w-5 h-5" />
+                Fashion
+              </span>
+            </Link>
+            <Link href="/categories/grocery" className={dropdownItemClass}>
+              <span className="flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5" />
+                Grocery
+              </span>
+            </Link>
           </div>
-         
         </nav>
       </div>
 
