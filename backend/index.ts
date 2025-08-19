@@ -1,30 +1,37 @@
 import express from 'express';
-import dotenv from  'dotenv';
+import dotenv from 'dotenv';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import cookiesParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import connectDB from './config/connectDB';
-import authRouter from './Routes/authrouter';
+import authRouter from './Routes/authRouter';
+
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
 const app = express();
 
-const corsOption = {
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
-}
+// ✅ CORS Setup
+const corsOptions = {
+  origin: FRONTEND_URL,  
+  credentials: true,    
+};
+app.use(cors(corsOptions));
 
-app.use(cors(corsOption));
+// ✅ Middleware
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cookiesParser());
+app.use(cookieParser());
 
+// ✅ Connect to DB
 connectDB();
 
-app.use('/api/auth', authRouter);
+// ✅ Routes
+app.use('/', authRouter);
 
+// ✅ Start Server
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });

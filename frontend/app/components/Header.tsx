@@ -16,7 +16,7 @@ const Header = () => {
   const [isUserOpen, setIsUserOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [user, setUser] = useState<{ name: string } | null>({ name: "Sunny Gupta" });
+  const [user, setUser] = useState<{ name: string } | null>(null);
 
 
 
@@ -213,7 +213,7 @@ const Header = () => {
                         <LogIn className="w-5 h-5 text-black" /> Login
                       </span>
                     </Link>
-                    <Link href="/signup" className={dropdownItemClass}>
+                    <Link href="/register" className={dropdownItemClass}>
                       <span className="flex items-center gap-2">
                         <UserPlus className="w-5 h-5 text-black" /> Signup
                       </span>
