@@ -1,24 +1,22 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../store/store";
+import { logout } from "../store/slice/userSlice";
 import { Search, ShoppingCart, Heart, User, Menu, X, Home, Monitor, Shirt, ShoppingBag, LayoutGrid, Gift, LogOut, LogIn, UserPlus } from "lucide-react";
 
-
 const Header = () => {
-
-
+  const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.user);
+  
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-
   const categoriesRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
-
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [isUserOpen, setIsUserOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [user, setUser] = useState<{ name: string } | null>(null);
-
-
 
   const getInitials = (name: string) =>
     name
@@ -33,7 +31,37 @@ const Header = () => {
   const buttonClass =
     "p-2 rounded-full transition hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white active:bg-gradient-to-r active:from-blue-600 active:to-purple-600 active:text-white active:scale-95";
 
-  // ...existing code...
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Close categories dropdown if clicked outside
+      if (isCategoriesOpen && categoriesRef.current && !categoriesRef.current.contains(event.target as Node)) {
+        setIsCategoriesOpen(false);
+      }
+
+      // // Close user dropdown if clicked outside
+      // if (isUserOpen && userRef.current && !userRef.current.contains(event.target as Node)) {
+      //   setIsUserOpen(false);
+      // }
+      
+      // Close mobile menu if clicked on overlay
+      if (isMobileMenuOpen && !(event.target as Element).closest('.mobile-menu-drawer')) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isCategoriesOpen, isUserOpen, isMobileMenuOpen]);
+
+  // Close dropdowns when a link is clicked (for navigation)
+  const handleLinkClick = () => {
+    setIsCategoriesOpen(false);
+    setIsUserOpen(false);
+    setIsMobileMenuOpen(false);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,13 +70,18 @@ const Header = () => {
     }
   };
 
+  const handleLogout = () => {
+    dispatch(logout());
+    setIsUserOpen(false);
+  };
+
   return (
     <header className="border-b bg-white text-black rounded-xl sticky top-0 z-50">
       {/* Desktop Header */}
       <div className="container w-[80%] mx-auto hidden lg:flex items-center justify-between p-4">
         {/* Left */}
         <div className="flex items-center space-x-6">
-          <Link href="/" className="flex items-center space-x-3 group">
+          <Link href="/" className="flex items-center space-x-3 group" onClick={handleLinkClick}>
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity"></div>
               <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-xl">
@@ -63,11 +96,7 @@ const Header = () => {
           <Link
             href="/"
             className={`flex items-center space-x-1 ${buttonClass}`}
-            onClick={() => {
-              setIsCategoriesOpen(false);
-              setIsUserOpen(false);
-              setIsMobileMenuOpen(false);
-            }} 
+            onClick={handleLinkClick}
           >
             <span className="flex items-center gap-2">
               <Home className="w-5 h-5" />
@@ -80,7 +109,6 @@ const Header = () => {
               onClick={() => {
                 setIsCategoriesOpen((prev) => !prev);
                 setIsUserOpen(false);
-                setIsMobileMenuOpen(false);
               }}
               className={`flex items-center space-x-1 ${buttonClass}`}
             >
@@ -106,12 +134,12 @@ const Header = () => {
             </button>
 
             {isCategoriesOpen && (
-              <div className="absolute mt-2 w-64 bg-white text-black rounded-lg shadow-lg">
+              <div className="absolute mt-2 w-64 bg-white text-black rounded-lg shadow-lg z-50">
                 <div className="grid grid-cols-2 gap-2 p-2">
                   <Link
                     href="/categories/electronics"
                     className={dropdownItemClass}
-                    onClick={() => setIsCategoriesOpen(false)}
+                    onClick={handleLinkClick}
                   >
                     <span className="flex flex-col items-center gap-1">
                       <Monitor className="w-6 h-6" />
@@ -121,7 +149,7 @@ const Header = () => {
                   <Link
                     href="/categories/fashion"
                     className={dropdownItemClass}
-                    onClick={() => setIsCategoriesOpen(false)}
+                    onClick={handleLinkClick}
                   >
                     <span className="flex flex-col items-center gap-1">
                       <Shirt className="w-6 h-6" />
@@ -131,7 +159,7 @@ const Header = () => {
                   <Link
                     href="/categories/grocery"
                     className={dropdownItemClass}
-                    onClick={() => setIsCategoriesOpen(false)}
+                    onClick={handleLinkClick}
                   >
                     <span className="flex flex-col items-center gap-1">
                       <ShoppingBag className="w-6 h-6" />
@@ -165,13 +193,13 @@ const Header = () => {
 
         {/* Right */}
         <div className="flex items-center space-x-6">
-          <Link href="/cart" className={`relative ${buttonClass}`}>
+          <Link href="/cart" className={`relative ${buttonClass}`} onClick={handleLinkClick}>
             <ShoppingCart className="h-6 w-6" />
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
               0
             </span>
           </Link>
-          <Link href="/wishlist" className={`relative ${buttonClass}`}>
+          <Link href="/wishlist" className={`relative ${buttonClass}`} onClick={handleLinkClick}>
             <Heart className="h-6 w-6" />
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
               0
@@ -182,23 +210,32 @@ const Header = () => {
               onClick={() => {
                 setIsUserOpen((prev) => !prev);
                 setIsCategoriesOpen(false);
-                setIsMobileMenuOpen(false);
               }}
               className={`flex items-center justify-center w-10 h-10 rounded-full border ${buttonClass}`}
             >
-              {user ? getInitials(user.name) : <User className="h-6 w-6" />}
+              {user.isLoggedIn ? (
+                <span className="font-semibold text-sm">
+                  {getInitials(user.name)}
+                </span>
+              ) : (
+                <User className="h-6 w-6" />
+              )}
             </button>
             {isUserOpen && (
-              <div className="absolute mt-2 w-40 bg-white text-black rounded-lg shadow-lg">
-                {user ? (
+              <div className="absolute mt-2 w-48 bg-white text-black rounded-lg shadow-lg z-50">
+                {user.isLoggedIn ? (
                   <>
-                    <Link href="/orders" className={dropdownItemClass}>
+                    <div className="px-4 py-2 border-b">
+                      <p className="text-sm font-medium">Hello, {user.name}</p>
+                      <p className="text-xs text-gray-600">{user.email}</p>
+                    </div>
+                    <Link href="/orders" className={dropdownItemClass} onClick={handleLinkClick}>
                       <span className="flex items-center gap-2">
                         <Gift className="w-5 h-5 text-black" /> My Orders
                       </span>
                     </Link>
                     <button
-                      onClick={() => setUser(null)}
+                      onClick={handleLogout}
                       className={`${dropdownItemClass} w-full text-left`}
                     >
                       <span className="flex items-center gap-2">
@@ -208,12 +245,12 @@ const Header = () => {
                   </>
                 ) : (
                   <>
-                    <Link href="/login" className={dropdownItemClass}>
+                    <Link href="/login" className={dropdownItemClass} onClick={handleLinkClick}>
                       <span className="flex items-center gap-2">
                         <LogIn className="w-5 h-5 text-black" /> Login
                       </span>
                     </Link>
-                    <Link href="/register" className={dropdownItemClass}>
+                    <Link href="/register" className={dropdownItemClass} onClick={handleLinkClick}>
                       <span className="flex items-center gap-2">
                         <UserPlus className="w-5 h-5 text-black" /> Signup
                       </span>
@@ -241,7 +278,7 @@ const Header = () => {
             >
               <Menu className="h-6 w-6" />
             </button>
-            <Link href="/" className="flex items-center space-x-3">
+            <Link href="/" className="flex items-center space-x-3" onClick={handleLinkClick}>
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-75"></div>
                 <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-black p-3 rounded-xl">
@@ -255,13 +292,13 @@ const Header = () => {
           </div>
 
           <div className="flex items-center space-x-3">
-            <Link href="/cart" className={`relative ${buttonClass}`}>
+            <Link href="/cart" className={`relative ${buttonClass}`} onClick={handleLinkClick}>
               <ShoppingCart className="h-6 w-6" />
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                 0
               </span>
             </Link>
-            <Link href="/wishlist" className={`relative ${buttonClass}`}>
+            <Link href="/wishlist" className={`relative ${buttonClass}`} onClick={handleLinkClick}>
               <Heart className="h-6 w-6" />
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                 0
@@ -274,20 +311,30 @@ const Header = () => {
                 onClick={() => setIsUserOpen((prev) => !prev)}
                 className={`flex items-center justify-center w-10 h-10 rounded-full border ${buttonClass}`}
               >
-                {user ? getInitials(user.name) : <User className="h-6 w-6" />}
+                {user.isLoggedIn ? (
+                  <span className="font-semibold text-sm">
+                    {getInitials(user.name)}
+                  </span>
+                ) : (
+                  <User className="h-6 w-6" />
+                )}
               </button>
               {isUserOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded-lg shadow-lg z-50">
-                  {user ? (
+                <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-lg shadow-lg z-50">
+                  {user.isLoggedIn ? (
                     <>
-                      <Link href="/orders" className={dropdownItemClass}>
+                      <div className="px-4 py-2 border-b">
+                        <p className="text-sm font-medium">Hello, {user.name}</p>
+                        <p className="text-xs text-gray-600">{user.email}</p>
+                      </div>
+                      <Link href="/orders" className={dropdownItemClass} onClick={handleLinkClick}>
                         <span className="flex items-center gap-2">
                           <Gift className="w-5 h-5 text-black" />
                           My Orders
                         </span>
                       </Link>
                       <button
-                        onClick={() => setUser(null)}
+                        onClick={handleLogout}
                         className={`${dropdownItemClass} w-full text-left`}
                       >
                         <span className="flex items-center gap-2">
@@ -298,13 +345,13 @@ const Header = () => {
                     </>
                   ) : (
                     <>
-                      <Link href="/login" className={dropdownItemClass}>
+                      <Link href="/login" className={dropdownItemClass} onClick={handleLinkClick}>
                         <span className="flex items-center gap-2">
                           <LogIn className="w-5 h-5 text-black" />
                           Login
                         </span>
                       </Link>
-                      <Link href="/signup" className={dropdownItemClass}>
+                      <Link href="/register" className={dropdownItemClass} onClick={handleLinkClick}>
                         <span className="flex items-center gap-2">
                           <UserPlus className="w-5 h-5 text-black" />
                           Signup
@@ -340,7 +387,7 @@ const Header = () => {
 
       {/* Mobile Menu Drawer */}
       <div
-        className={`lg:hidden fixed inset-y-0 left-0 w-64 bg-white text-black p-3 transform transition-transform duration-300 z-50 ${
+        className={`mobile-menu-drawer lg:hidden fixed inset-y-0 left-0 w-64 bg-white text-black p-3 transform transition-transform duration-300 z-50 ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -354,7 +401,7 @@ const Header = () => {
           </button>
         </div>
         <nav className="flex flex-col p-2 gap-1">
-          <Link href="/" className={dropdownItemClass}>
+          <Link href="/" className={dropdownItemClass} onClick={handleLinkClick}>
             <span className="flex items-center gap-2">
               <Home className="w-5 h-5" />
               Home
@@ -365,19 +412,19 @@ const Header = () => {
               <LayoutGrid className="w-5 h-5" />
               Categories
             </div>
-            <Link href="/categories/electronics" className={dropdownItemClass}>
+            <Link href="/categories/electronics" className={dropdownItemClass} onClick={handleLinkClick}>
               <span className="flex items-center gap-2">
                 <Monitor className="w-5 h-5" />
                 Electronics
               </span>
             </Link>
-            <Link href="/categories/fashion" className={dropdownItemClass}>
+            <Link href="/categories/fashion" className={dropdownItemClass} onClick={handleLinkClick}>
               <span className="flex items-center gap-2">
                 <Shirt className="w-5 h-5" />
                 Fashion
               </span>
             </Link>
-            <Link href="/categories/grocery" className={dropdownItemClass}>
+            <Link href="/categories/grocery" className={dropdownItemClass} onClick={handleLinkClick}>
               <span className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5" />
                 Grocery

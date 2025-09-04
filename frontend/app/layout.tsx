@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import { Roboto_Mono as Roboto } from "next/font/google";
 import "./globals.css";
@@ -24,11 +23,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <Header />
         <LayoutWrapper>
+          <Header /> {/* Move Header inside LayoutWrapper */}
           {children}
+          <Footer /> {/* Move Footer inside LayoutWrapper if it also uses Redux */}
         </LayoutWrapper>
-        <Footer />
       </body>
     </html>
   );

@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, ChangeEvent, FormEvent } from "react";
-import { loginUser, registerUser, forgotPassword } from "../lib/api";
+import { useDispatch } from "react-redux";
+import { setUser } from "../store/slice/userSlice";
+import { useLoginUserMutation, useRegisterUserMutation, useForgotPasswordMutation } from "../store/api";
 
-
-import { useRouter } from 'next/navigation';
 interface AuthModalProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -13,6 +13,7 @@ interface AuthModalProps {
 type Tab = "login" | "register" | "forgot";
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, setIsOpen }) => {
+  const dispatch = useDispatch();
   const [currentTab, setCurrentTab] = useState<Tab>("login");
 
   // Form states
@@ -21,9 +22,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, setIsOpen }) => {
   const [forgotEmail, setForgotEmail] = useState("");
 
   // UI states
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Use the mutation hooks
+  const [loginUser, { isLoading: isLoginLoading }] = useLoginUserMutation();
+  const [registerUser, { isLoading: isRegisterLoading }] = useRegisterUserMutation();
+  const [forgotPassword, { isLoading: isForgotLoading }] = useForgotPasswordMutation();
+
+  const loading = isLoginLoading || isRegisterLoading || isForgotLoading;
 
   // Handle input changes
   const handleLoginChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -37,53 +44,71 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, setIsOpen }) => {
   // Submit handlers
   const handleLoginSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setSuccessMsg(null);
 
     try {
-      await loginUser(loginForm.email, loginForm.password);
+      const response = await loginUser({ 
+        email: loginForm.email, 
+        password: loginForm.password 
+      }).unwrap();
+      
+      // Dispatch the setUser action with user data
+      // Adjust these based on your actual API response structure
+      dispatch(setUser({
+        id: response.userId || response.id || "user-id-placeholder", 
+        name: response.name || loginForm.email.split('@')[0], // Fallback to username from email
+        email: loginForm.email
+      }));
       
       setSuccessMsg("Logged in successfully!");
       setTimeout(() => setIsOpen(false), 1000);
     } catch (err: any) {
-      setError(err.message || "Login failed");
-    } finally {
-      setLoading(false);
+      setError(err.message || err.data?.message || "Login failed");
     }
   };
 
   const handleRegisterSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setSuccessMsg(null);
 
     try {
-      await registerUser(registerForm.name, registerForm.email, registerForm.password);
+      const response = await registerUser({
+        name: registerForm.name,
+        email: registerForm.email,
+        password: registerForm.password
+      }).unwrap();
+      
+      // Dispatch the setUser action for registration too
+      // Adjust these based on your actual API response structure
+      dispatch(setUser({
+        id: response.userId || response.id || "user-id-placeholder",
+        name: registerForm.name,
+        email: registerForm.email
+      }));
+      
       setSuccessMsg("Registered successfully!");
       setTimeout(() => setIsOpen(false), 1000);
     } catch (err: any) {
-      setError(err.message || "Registration failed");
-    } finally {
-      setLoading(false);
+      setError(err.message || err.data?.message || "Registration failed");
     }
   };
 
   const handleForgotSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setSuccessMsg(null);
 
     try {
-      await forgotPassword(forgotEmail);
+      await forgotPassword({ 
+        email: forgotEmail 
+      }).unwrap();
+      
       setSuccessMsg("Password reset link sent! Check your email.");
       setCurrentTab("login");
     } catch (err: any) {
-      setError(err.message || "Failed to send reset link");
-    } finally {
-      setLoading(false);
+      setError(err.message || err.data?.message || "Failed to send reset link");
     }
   };
 

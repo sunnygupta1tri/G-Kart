@@ -2,20 +2,28 @@
 'use client';
 
 import { useState, ChangeEvent, FormEvent } from 'react';
-import { loginUser, forgotPassword, registerUser } from '../lib/api';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../store/slice/userSlice';
+import { useLoginUserMutation, useForgotPasswordMutation } from '../store/api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 type AuthTab = 'login' | 'forgot';
 
 const AuthForm = () => {
+  const dispatch = useDispatch();
   const [tab, setTab] = useState<AuthTab>('login');
   const router = useRouter();
 
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Use the mutation hooks
+  const [loginUser, { isLoading: isLoginLoading }] = useLoginUserMutation();
+  const [forgotPassword, { isLoading: isForgotLoading }] = useForgotPasswordMutation();
+
+  const loading = isLoginLoading || isForgotLoading;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -25,22 +33,32 @@ const AuthForm = () => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
-    setLoading(true);
 
     try {
       if (tab === 'login') {
-        await loginUser(formData.email, formData.password);
+        const response = await loginUser({ 
+          email: formData.email, 
+          password: formData.password 
+        }).unwrap();
+        
+        // Dispatch the setUser action
+        dispatch(setUser({
+          id: response.userId || response.id || "user-id-placeholder", // Adjust based on your API response
+          name: response.name || formData.email.split('@')[0], // Adjust based on your API response
+          email: formData.email
+        }));
+        
         setSuccess('Logged in successfully!');
         router.push('/');
       } else if (tab === 'forgot') {
-        await forgotPassword(formData.email);
+        await forgotPassword({ 
+          email: formData.email 
+        }).unwrap();
         setSuccess('Reset link sent to email');
         setTab('login');
       }
     } catch (err: any) {
-      setError(err.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
+      setError(err.message || err.data?.message || 'Something went wrong');
     }
   };
 
@@ -79,7 +97,7 @@ const AuthForm = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
         >
           {loading
             ? 'Please wait...'
